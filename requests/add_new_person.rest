@@ -5,3 +5,14 @@ Content-Type: application/json
     "name": "tom allo",
     "number": "0977383839"
 }
+
+
+###
+
+POST https://fullstackopen-phonebookbackend.fly.dev/api/persons
+Content-Type: application/json
+
+{
+    "name": "tom allo",
+    "number": "0977383839"
+}

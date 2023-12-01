@@ -1,8 +1,11 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 const app = express()
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
+app.use(cors())
+app.use(express.static('dist'))
 app.use(express.json())
 
 morgan.token('request-body', (req, res) => JSON.stringify(req.body))
@@ -87,7 +90,9 @@ app.post('/api/persons/', (request, response) => {
     }
 
     let id = generateRandomId()
-    while (persons.map(person => person.id).includes(id)) id = generateRandomId() //just in case ;)
+    while (persons.map(person => person.id).includes(id)) {
+        id = generateRandomId() //just in case ;)
+    }
 
     const newPerson = {
         id: id,
