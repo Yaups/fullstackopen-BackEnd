@@ -1,8 +1,10 @@
+require('dotenv').config()
+const Person = require('./models/person')
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 
 app.use(cors())
 app.use(express.static('dist'))
@@ -19,48 +21,32 @@ app.use(morgan((tokens, req, res) => [
 ].join(' ')
 ))
 
-const generateRandomId = () => Math.floor(Math.random() * 2000000000)
-
-let persons = [
-    {
-        id: 1,
-        name: "Arto Hellas",
-        number: "040-123456"
-    },
-    {
-        id: 2,
-        name: "Ada Lovelace",
-        number: "39-44-5323523"
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        number: "12-43-234345"
-    },
-    {
-        id: 4,
-        name: "Mary Poppendieck",
-        number: "39-23-6423122"
-    }
-]
+//const generateRandomId = () => Math.floor(Math.random() * 2000000000)
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person
+        .find({})
+        .then(persons => response.json(persons))
 })
 
 app.get('/api/info', (request, response) => {
     response.send(`
-    <p>Number of entries currently in phonebook: ${persons.length}</p>
+    <p>Number of entries currently in phonebook: ${4}</p>
     <p>Current date and time: ${new Date()}</p>
     `)
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
-
-    if (person) response.json(person)
-    else response.status(404).end()
+    Person
+        .findById(request.params.id)
+        .then(person => {
+            if (person) response.json(person)
+            else response.status(404).end()
+        })
+        .catch(error => {
+            console.log(error)
+            response.status(500).end()
+        })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -80,6 +66,10 @@ app.post('/api/persons/', (request, response) => {
         })
     }
 
+    const name = body.name
+    const number = body.number
+
+    /*
     const namesToCompare = persons.map(person => person.name.toLowerCase())
     const lowercaseNewName = body.name.toLowerCase().trim()
 
@@ -88,20 +78,12 @@ app.post('/api/persons/', (request, response) => {
             error: `${lowercaseNewName} already exists in the phonebook.`
         })
     }
+    */
 
-    let id = generateRandomId()
-    while (persons.map(person => person.id).includes(id)) {
-        id = generateRandomId() //just in case ;)
-    }
-
-    const newPerson = {
-        id: id,
-        name: body.name.trim(),
-        number: body.number.trim()
-    }
-    persons = persons.concat(newPerson)
-
-    response.json(newPerson)
+    const newPerson = new Person({ name, number })
+    newPerson
+        .save()
+        .then(addedPerson => response.json(addedPerson))
 })
 
 app.listen(PORT, () => {
